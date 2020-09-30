@@ -1,134 +1,62 @@
-# Phase Field Benchmark 8
+# Phase Field Benchmark Problems for Nucleation
+
+*Add DOI Link for this repository to include in paper. Can we do that in time?*
+
+This repository contains supplementary material and code necessary to
+run some of the examples from the paper entitled *Phase Field
+Benchmark Problems for Nucleation* authored by *W. Wu et al.* (not yet
+submitted).
 
 ## Overview
 
-[FiPy](https://www.ctcms.nist.gov/fipy) implementation of 
-Phase Field Benchmark #8 ("Benchmark problems for nucleation - Tamás 
-Pusztai - September 25, 2019")
+During the development of the nucleation benchmark problem a number of
+implementations from different codes were used to ascertain the
+accuracy and robustness of both the benchmark specification and the
+numerical results from the specification. The nucleation benchmark is
+an important addition to the existing phase field benchmarks on the
+[PFHub website][PFHub] as it describes the initial stages of many
+thermodynamic processes. For more details about the benchmark and the
+specification for the benchmark problem consults the paper for a
+details description and the [PFHub website][PFHub] for a concise
+specification and further results and examples of implementations.
 
-## Sumatra
+Four different codes are used to implement the benchmark
+specification. The results from each of these codes indicate good
+convergence demonstrating the overall robustness of the
+specification. The four codes include [MOOSE], [FiPy],
+[PRISMS-PF] and an unpublished custom finite difference code. Each of
+these are in a separate directory ([`moose`](moose/README.md),
+[`fipy`](fipy/README.md), [`prisms-pf`](primsms-pf/README.md) and
+[`custom`](custom/README.md)) with detailed installation and usage
+instructions. The included examples do not cover every example
+implemented in the paper, but a few relevant examples. It is hoped
+that other examples from the paper can be implemented by editing the
+input files.
 
-```
-smt init --store datreant://.smt/records benchmark8
-smt configure --executable python --addlabel parameters \
-  --labelgenerator uuid --launch_mode distributed \
-  --pfi_path /Users/guyer/anaconda/envs/fipy/bin/pfi.py
-```
+The development of this repostiory is an ongoing process and probably
+will only be completed after the paper has already been published.
 
-Results are stored in the `Data/` directory using a customized
-[sumatra](http://neuralensemble.org/sumatra/)
-on branch `datreant_store` @ 9d41e9e.
+## Feedback
 
-```
-$ smt info
-Project name        : benchmark8
-Default executable  : Python (version: 2.7.15) at /Users/guyer/anaconda/envs/fipy/bin/python
-Default repository  : GitRepository at /Users/guyer/Documents/research/CHiMaD/phase_field/phasefieldbenchmark-8
-Default main file   : None
-Default launch mode : distributed (n=1, mpiexec=/Users/guyer/anaconda/envs/fipy/bin/mpiexec, hosts=[])
-Data store (output) : /Users/guyer/Documents/research/CHiMaD/phase_field/phasefieldbenchmark-8/Data
-.          (input)  : /
-Record store        : Record store using the datreant package (database file=.smt/records)
-Code change policy  : error
-Append label to     : parameters
-Label generator     : uuid
-Timestamp format    : %Y%m%d-%H%M%S
-Plug-ins            : []
-Sumatra version     : 0.8dev
-```
+Please open up an issue to contact the authors or leave feedback.
 
+## Credits
 
-ATTENTION: In `distributed` launch_mode, Sumatra *must* be invoked with
-```
-mpiexec -n 1 smt run -n <n> --main benchmark8a.py params.yaml
-```
-to keep MPICH happy.
+ - Wenkun Wu
+ - [David Montiel](https://mse.engin.umich.edu/people/dmontiel)
+ - [Jon Guyer](https://www.nist.gov/people/jonathan-e-guyer)
+ - [Peter Voorhees](http://speedy.ms.northwestern.edu/)
+ - [Jim Warren](https://www.nist.gov/people/james-warren)
+ - [Daniel Wheeler](https://www.nist.gov/people/daniel-wheeler)
+ - [László Gránásy](https://www.mpie.de/3694281/laszlo_granasy)
+ - [Tamás Pusztai](https://www.szfki.hu/~pusztai/)
+ - [Olle Heinonen](https://www.anl.gov/profile/olle-g-heinonen)
 
+## License
 
-## CTCMS Cluster Issues
+Read the [terms of use](./LICENSE.md).
 
-NOTE: default mpirun on ruth and cluster nodes
-
-### Case 1
-
-Launching with
-```
-/tmp/guyer/miniconda2/envs/cluster_fipy/bin/mpiexec -n 1 smt run -n $SLURM_NTASKS --main benchmark8b.py params8b.yaml "$@"
-```
-produced (Andrew fixed this[*])
-```
-[mpiexec@r001] HYDU_create_process (utils/launch/launch.c:75): execvp error on file srun (No such file or directory)
-```
-
-This error message is supposed to mean that `mpiexec` is trying to call 
-something (`srun`) that can't be found, but `srun` calls `mpiexec`, not 
-the other way around? 
-
-Sumatra doesn't call `srun`. 
-
-Taking `smt` out of it altogether doesn't help.
-
-[*] Andrew fixed this by installing `srun` on `r001`.  Apparently *his*
-`mpiexec` needs to be rebuilt somehow to invoke this `srun`, but the
-`mpiexec` I get from conda is A-OK. Installing on other nodes will require 
-taking down their slurm queues, so probably won't happen until site-wide 
-shutdown over 25-27 OCT 2019.
-
-### Case 2
-
-Launching with
-```
-/usr/bin/mpirun -n 1 smt run -n $SLURM_NTASKS --main benchmark8b.py params8b.yaml "$@"
-```
-produces
-```
-**********************************************************
-
-Open MPI does not support recursive calls of mpiexec
-
-**********************************************************
-```
-
-This is because `/usr/bin/mpirun` is from OpenMPI and the error message is 
-pretty descriptive. For that `mpirun`, Sumatra should be invoked with 
-```
-smt run -n <n> --main benchmark8a.py params.yaml
-```
-but then the `mpirun` invoked by `DistributedLaunchMode` is the wrong one.
-???What happens???
-
-### Case 3
-
-Launching with default `mpiexec`
-```
-mpiexec -n 1 smt run -n $SLURM_NTASKS --main benchmark8b.py params8b.yaml "$@"
-```
-(more specifically
-```python
->>> mpi4py.MPI.COMM_SELF.Spawn("/tmp/guyer/miniconda2/envs/cluster_fipy/bin/python",
-...                            args=["/tmp/guyer/miniconda2/envs/cluster_fipy/bin/pfi.py"])
-```
-produces
-```
-[mpiexec@r001] match_arg (utils/args/args.c:159): unrecognized argument pmi_args
-[mpiexec@r001] HYDU_parse_array (utils/args/args.c:174): argument matching returned error
-[mpiexec@r001] parse_args (ui/mpich/utils.c:1596): error parsing input array
-[mpiexec@r001] HYD_uii_mpx_get_parameters (ui/mpich/utils.c:1648): unable to parse user arguments
-[mpiexec@r001] main (ui/mpich/mpiexec.c:149): error parsing parameters
-```
-
-### Upshot
-
-Launch with
-```
-/tmp/guyer/miniconda2/envs/cluster_fipy/bin/mpiexec -n 1 smt run -n $SLURM_NTASKS --main benchmark8b.py params8b.yaml "$@"
-```
-and ensure that `srun` is installed on cluster nodes.
-
-### SlurmMPILaunchMode
-
-Would `SlurmMPILaunchMode` take care of queuing *and* get rid of the slurm 
-script? Needs `salloc` installed on cluster nodes.
-
-No. `SlurmMPILaunchMode` does work, but it doesn't really "queue". The
-`smt` process remains running, so it's not useful for fire-and-forget.
+[PFHub]: https://pages.nist.gov/pfhub/
+[MOOSE]: https://www.mooseframework.org/
+[FiPy]: https://www.ctcms.nist.gov/fipy/
+[PRISMS-PF]: https://prisms-center.github.io/phaseField/

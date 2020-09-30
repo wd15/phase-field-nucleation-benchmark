@@ -21,7 +21,3 @@ dependencies:
   - pyyaml=5.1.2=py27h516909a_0
   - scipy=1.2.1=py27h921218d_2
   - setuptools=41.4.0=py27_0
- - pip:
-    - scikit-fmm==2019.1.30
-prefix: /tmp/guyer/miniconda2/envs/cluster_fipy
-
